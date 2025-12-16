@@ -29,7 +29,7 @@ jobs:
     - name: Web Sitesini Hazirla
       run: |
         # Sadece ana dosyayi derle, suslu isimleri sildik
-        flet publish main.py 
+        flet publish main.py --base /kripto-anahtar-apk/
 
     - name: Dosyalari Yukle
       uses: actions/upload-pages-artifact@v3
