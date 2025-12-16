@@ -5,7 +5,7 @@ import base64
 
 def main(page: ft.Page):
     # 1. AYARLAR
-    page.title = "GhostKey"
+    page.title = "Ghost Key"
     page.theme_mode = ft.ThemeMode.DARK 
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -116,5 +116,6 @@ def main(page: ft.Page):
     )
 
 ft.app(target=main, assets_dir="assets")
+
 
 
