@@ -5,7 +5,7 @@ import base64
 
 def main(page: ft.Page):
     # 1. AYARLAR
-    page.title = "Kripto Anahtar"
+    page.title = "GhostKey"
     page.theme_mode = ft.ThemeMode.DARK 
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -48,7 +48,7 @@ def main(page: ft.Page):
     title = ft.Text("Anahtar Kripto", size=24, weight="bold", color="white70")
     
     txt_app = ft.TextField(
-        label="Uygulama Adı (örn: instagram)", 
+        label="Service Name", 
         border_color="bluegrey400",
         text_size=16,
         border_radius=15,
@@ -57,7 +57,7 @@ def main(page: ft.Page):
     )
     
     txt_master = ft.TextField(
-        label="Ana Anahtarın", 
+        label="Key", 
         password=True, 
         can_reveal_password=True, 
         border_color="bluegrey400",
@@ -68,7 +68,7 @@ def main(page: ft.Page):
     )
 
     btn_generate = ft.ElevatedButton(
-        text="ÜRET VE KOPYALA", 
+        text="GENERATE", 
         on_click=sifre_uret,
         bgcolor="blue800",
         color="white",
@@ -116,3 +116,4 @@ def main(page: ft.Page):
     )
 
 ft.app(target=main)
+
