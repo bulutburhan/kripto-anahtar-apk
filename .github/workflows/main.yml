@@ -26,10 +26,11 @@ jobs:
       run: |
         pip install flet
 
-    - name: Web Sitesini Hazirla
+    - name: Web Sitesini Hazirla (Otomatik Mod)
       run: |
-        # Sadece ana dosyayi derle, suslu isimleri sildik
-        flet publish main.py --base /kripto-anahtar-apk/
+        # BURAYA DOKUNMA! 
+        # Bu kod proje ismini otomatik bulur ve HTML modunda hizli acilmasini saglar.
+        flet publish main.py --base /${{ github.event.repository.name }}/ --renderer html
 
     - name: Dosyalari Yukle
       uses: actions/upload-pages-artifact@v3
