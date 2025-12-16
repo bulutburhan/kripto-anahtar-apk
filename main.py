@@ -23,7 +23,7 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Şifreleme
+        # Şifreleme İşlemleri
         key_bytes = bytes(master_key, 'utf-8')
         msg_bytes = bytes(app_name.lower().strip(), 'utf-8') 
         
@@ -35,7 +35,7 @@ def main(page: ft.Page):
         lbl_result.value = generated_pass
         lbl_result.color = "green400"
         
-        # Kopyalama
+        # Panoya Kopyalama
         page.set_clipboard(generated_pass)
         
         page.snack_bar = ft.SnackBar(ft.Text("Şifre panoya kopyalandı!"), bgcolor="green900")
@@ -43,7 +43,7 @@ def main(page: ft.Page):
         
         page.update()
 
-    # 3. ARAYÜZ
+    # 3. ARAYÜZ ELEMANLARI
     icon_logo = ft.Icon(name="security", size=80, color="bluegrey200") 
     title = ft.Text("Anahtar Kripto", size=24, weight="bold", color="white70")
     
@@ -85,6 +85,7 @@ def main(page: ft.Page):
         selectable=True
     )
 
+    # 4. SAYFA YERLEŞİMİ
     page.add(
         ft.Column(
             [
@@ -102,8 +103,10 @@ def main(page: ft.Page):
                     content=lbl_result,
                     padding=15,
                     border_radius=10,
-                    # GitHub'ın hata vermemesi için burayı düzelttim:
-                    bgcolor=ft.colors.with_opacity(0.1, "white"), 
+                    # GÜNCELLEME: Python komutu yerine Hex Code kullandık.
+                    # "#1AFFFFFF" = %10 saydamlığa sahip beyaz renk demektir.
+                    # Bu kod her cihazda çalışır.
+                    bgcolor="#1AFFFFFF", 
                 )
             ],
             alignment=ft.MainAxisAlignment.CENTER,
