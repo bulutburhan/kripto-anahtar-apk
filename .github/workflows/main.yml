@@ -1,5 +1,6 @@
-name: Android APK Build
-
+name: Build APK
+      run: |
+        flet build apk --product "GhostKey" --org "com.ghostkey.app" --verbose
 on:
   push:
     branches: [ main ]
