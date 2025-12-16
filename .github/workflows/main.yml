@@ -1,6 +1,5 @@
-name: Build APK
-      run: |
-        flet build apk --product "GhostKey" --org "com.ghostkey.app" --verbose
+name: Android APK Build
+
 on:
   push:
     branches: [ main ]
@@ -32,15 +31,13 @@ jobs:
 
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.24.0'
 
     - name: Build APK
       run: |
-        flet build apk --verbose
+        flet build apk --product "GhostKey" --org "com.ghostkey.app" --verbose
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: kripto-anahtar-apk
-        path: build/apk/app-release.apk
+        path: build/app/outputs/flutter-apk/app-release.apk
