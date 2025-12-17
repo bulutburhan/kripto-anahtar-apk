@@ -1,18 +1,14 @@
-name: Web App Publish
+name: Android APK Build
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
     - name: Kodlari Cek
       uses: actions/checkout@v4
@@ -22,28 +18,30 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Flet Yukle
+    - name: Gereklilikleri Yukle
       run: |
         pip install flet
+        # Eğer requirements.txt varsa onu da yükler (opsiyonel güvenlik)
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Web Sitesini Hazirla (Otomatik Mod)
-      run: |
-        # BURAYA DOKUNMA! 
-        # Bu kod proje ismini otomatik bulur ve HTML modunda hizli acilmasini saglar.
-        flet publish main.py --base /${{ github.event.repository.name }}/ --renderer html
-
-    - name: Dosyalari Yukle
-      uses: actions/upload-pages-artifact@v3
+    - name: Java Kurulumu
+      uses: actions/setup-java@v4
       with:
-        path: dist
+        distribution: 'temurin'
+        java-version: '17'
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-    - name: Yayinla
-      id: deployment
-      uses: actions/deploy-pages@v4
+    - name: Flutter Kurulumu
+      uses: subosito/flutter-action@v2
+
+    - name: APK Derleme (Isim ve Icon Burada Islenir)
+      run: |
+        # DİKKAT: --product "CipherVault" kısmı uygulamanın telefon ekranındaki adıdır.
+        # İkon ise 'assets' klasöründen otomatik alınır.
+        flet build apk --product "CipherVault" --org "com.ciphervault.app" --verbose
+
+    - name: APK Dosyasini Yukle
+      uses: actions/upload-artifact@v4
+      with:
+        name: kripto-anahtar-apk
+        # Pişen APK'yı bulup bize getiren joker satır
+        path: build/**/*.apk
