@@ -1,121 +1,129 @@
 import flet as ft
 import hashlib
-import hmac
 import base64
 
 def main(page: ft.Page):
-    # 1. AYARLAR
-    page.title = "Ghost Key"
-    page.theme_mode = ft.ThemeMode.DARK 
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.padding = 30
-    page.scroll = "adaptive"
+    page.title = "CipherVault"
+    page.theme_mode = ft.ThemeMode.DARK
+    page.window.width = 390
+    page.window.height = 750
+    
+    # --- 1. FONKSİYONLAR ---
 
-    # 2. FONKSİYONLAR
-    def sifre_uret(e):
-        master_key = txt_master.value
-        app_name = txt_app.value
+    # Kayıtlı servisleri hafızadan çekelim, yoksa boş liste başlatalım
+    def servisleri_getir():
+        return page.client_storage.get("servisler") or []
 
-        if not master_key or not app_name:
-            page.snack_bar = ft.SnackBar(ft.Text("Lütfen iki alanı da doldurun!"), bgcolor="red400")
-            page.snack_bar.open = True
+    # Yeni servis ekleme
+    def servis_ekle(e):
+        if yeni_servis_input.value:
+            mevcut_liste = servisleri_getir()
+            mevcut_liste.append(yeni_servis_input.value)
+            page.client_storage.set("servisler", mevcut_liste) # Hafızaya kaydet
+            yeni_servis_input.value = ""
+            listeyi_guncelle()
             page.update()
-            return
 
-        # Şifreleme İşlemleri
-        key_bytes = bytes(master_key, 'utf-8')
-        msg_bytes = bytes(app_name.lower().strip(), 'utf-8') 
+    # Bir servise tıklayınca şifre üretme ekranına veriyi taşıma
+    def servise_tikla(servis_adi):
+        txt_servis.value = servis_adi # Ana ekrandaki kutuyu doldur
+        page.go("/uret") # Üretim sayfasına git
+
+    # Servis silme (Opsiyonel)
+    def servis_sil(servis_adi):
+        mevcut_liste = servisleri_getir()
+        if servis_adi in mevcut_liste:
+            mevcut_liste.remove(servis_adi)
+            page.client_storage.set("servisler", mevcut_liste)
+            listeyi_guncelle()
+
+    # Listeyi ekrana çizme
+    servisler_kolonu = ft.Column()
+
+    def listeyi_guncelle():
+        servisler_kolonu.controls.clear()
+        kayitli_liste = servisleri_getir()
         
-        digester = hmac.new(key_bytes, msg_bytes, hashlib.sha256)
-        signature = digester.digest()
-        
-        generated_pass = base64.b64encode(signature).decode('utf-8')[:16] + "1!" 
-        
-        lbl_result.value = generated_pass
-        lbl_result.color = "green400"
-        
-        # Panoya Kopyalama
-        page.set_clipboard(generated_pass)
-        
-        page.snack_bar = ft.SnackBar(ft.Text("Şifre panoya kopyalandı!"), bgcolor="green900")
-        page.snack_bar.open = True
-        
+        for servis in kayitli_liste:
+            servisler_kolonu.controls.append(
+                ft.ListTile(
+                    leading=ft.Icon(ft.icons.KEY),
+                    title=ft.Text(servis),
+                    on_click=lambda e, x=servis: servise_tikla(x), # Tıklayınca seç
+                    trailing=ft.IconButton(
+                        ft.icons.DELETE_OUTLINE, 
+                        on_click=lambda e, x=servis: servis_sil(x)
+                    )
+                )
+            )
         page.update()
 
-    # 3. ARAYÜZ ELEMANLARI
-    icon_logo = ft.Icon(name="security", size=80, color="bluegrey200") 
-    title = ft.Text("Anahtar Kripto", size=24, weight="bold", color="white70")
+    # --- 2. SAYFALAR ---
     
-    txt_app = ft.TextField(
-        label="Service Name", 
-        border_color="bluegrey400",
-        text_size=16,
-        border_radius=15,
-        content_padding=20,
-        prefix_icon="apps"
-    )
+    # Giriş/Liste Sayfası Elemanları
+    yeni_servis_input = ft.TextField(hint_text="Yeni Servis Ekle (örn: Twitter)", expand=True)
+    ekle_btn = ft.IconButton(ft.icons.ADD_CIRCLE, on_click=servis_ekle, icon_color="green")
+
+    # Şifre Üretme Sayfası Elemanları
+    txt_servis = ft.TextField(label="Servis Adı (Otomatik Gelir)")
+    txt_anahtar = ft.TextField(label="Gizli Anahtarın", password=True, can_reveal_password=True)
+    txt_sonuc = ft.TextField(label="Oluşturulan Şifre", read_only=True)
     
-    txt_master = ft.TextField(
-        label="Key", 
-        password=True, 
-        can_reveal_password=True, 
-        border_color="bluegrey400",
-        text_size=16,
-        border_radius=15,
-        content_padding=20,
-        prefix_icon="vpn_key"
-    )
+    def sifre_uret(e):
+        # Senin klasik şifre üretme kodun buraya...
+        if not txt_servis.value or not txt_anahtar.value:
+            return
+        
+        birlestirilmis = txt_servis.value + txt_anahtar.value
+        imza = hashlib.sha256(birlestirilmis.encode()).digest()
+        sonuc = base64.b64encode(imza).decode('utf-8')[:16]
+        txt_sonuc.value = sonuc
+        page.update()
 
-    btn_generate = ft.ElevatedButton(
-        text="GENERATE", 
-        on_click=sifre_uret,
-        bgcolor="blue800",
-        color="white",
-        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
-        height=55,
-        width=250
-    )
-
-    lbl_result = ft.Text(
-        value="...", 
-        size=22, 
-        weight=ft.FontWeight.BOLD,
-        font_family="monospace",
-        selectable=True
-    )
-
-    # 4. SAYFA YERLEŞİMİ
-    page.add(
-        ft.Column(
-            [
-                icon_logo,
-                ft.Container(height=10),
-                title,
-                ft.Container(height=30),
-                txt_app,
-                ft.Container(height=10),
-                txt_master,
-                ft.Container(height=30),
-                btn_generate,
-                ft.Container(height=30),
-                ft.Container(
-                    content=lbl_result,
-                    padding=15,
-                    border_radius=10,
-                    # GÜNCELLEME: Python komutu yerine Hex Code kullandık.
-                    # "#1AFFFFFF" = %10 saydamlığa sahip beyaz renk demektir.
-                    # Bu kod her cihazda çalışır.
-                    bgcolor="#1AFFFFFF", 
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=10
+    # Sayfa Yönlendirme Sistemi (Routing)
+    def route_change(e):
+        page.views.clear()
+        
+        # 1. SAYFA: SERVİS LİSTESİ
+        page.views.append(
+            ft.View(
+                "/",
+                [
+                    ft.AppBar(title=ft.Text("Kasam"), bgcolor="bluegrey900"),
+                    ft.Row([yeni_servis_input, ekle_btn]),
+                    ft.Divider(),
+                    ft.Text("Kayıtlı Servislerin:", size=16, weight="bold"),
+                    servisler_kolonu
+                ]
+            )
         )
-    )
 
-ft.app(target=main, assets_dir="assets")
+        # 2. SAYFA: ŞİFRE ÜRETME
+        if page.route == "/uret":
+            page.views.append(
+                ft.View(
+                    "/uret",
+                    [
+                        ft.AppBar(title=ft.Text("Şifre Üret")),
+                        txt_servis,
+                        txt_anahtar,
+                        ft.ElevatedButton("Oluştur", on_click=sifre_uret),
+                        txt_sonuc,
+                        ft.IconButton(ft.icons.COPY, on_click=lambda e: page.set_clipboard(txt_sonuc.value))
+                    ]
+                )
+            )
+        page.update()
 
+    def view_pop(e):
+        page.views.pop()
+        top_view = page.views[-1]
+        page.go(top_view.route)
 
+    page.on_route_change = route_change
+    page.on_view_pop = view_pop
+    
+    listeyi_guncelle() # Uygulama açılınca listeyi yükle
+    page.go(page.route)
 
+ft.app(target=main)
